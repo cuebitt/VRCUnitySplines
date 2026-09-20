@@ -1,13 +1,19 @@
 {
   "name": "com.cuebitt.vrcunitysplines",
-  "displayName": "VRChat Example Package",
-  "version": "0.0.7",
+  "displayName": "VRCUnitySplines",
+  "version": "1.0.0",
   "unity": "2022.3",
-  "description": "Simple Package for testing Automation",
-  "vrchatVersion": "2022.1.1",
+  "description": "Editor-time baking that brings Unity Splines to VRChat worlds: animated paths, prefab scatter and extruded meshes with no Splines dependency at upload.",
+  "license": "MIT",
   "author": {
-    "name": "Momo the Monster",
-    "email": "momodmonster@gmail.com",
-    "url": "https://mmmlabs.com"
+    "name": "Cuebitt",
+    "email": "momodmonster@gmail.com"
+  },
+  "dependencies": {
+    "com.unity.splines": "2.6.1"
+  },
+  "vpmDependencies": {
+    "com.vrchat.worlds": "^3.10.4",
+    "com.vrchat.base": "^3.10.4"
   }
 }

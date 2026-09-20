@@ -1,9 +1,11 @@
 {
-    "name": "VRChatPackageTemplate.Editor",
-    "references": [],
-    "includePlatforms": [
-        "Editor"
+    "name": "Cuebitt.VRCUnitySplines.Runtime",
+    "rootNamespace": "Cuebitt.VRCUnitySplines",
+    "references": [
+        "UdonSharp.Runtime",
+        "VRC.SDKBase"
     ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

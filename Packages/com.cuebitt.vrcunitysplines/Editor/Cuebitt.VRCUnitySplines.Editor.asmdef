@@ -1,0 +1,20 @@
+{
+    "name": "Cuebitt.VRCUnitySplines.Editor",
+    "rootNamespace": "Cuebitt.VRCUnitySplines.Editor",
+    "references": [
+        "Cuebitt.VRCUnitySplines.Runtime",
+        "Unity.Splines",
+        "VRC.SDKBase.Editor.BuildPipeline"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
