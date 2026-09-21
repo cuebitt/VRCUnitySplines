@@ -9,6 +9,8 @@ namespace Cuebitt.VRCUnitySplines.Tests
     // test consumes already-baked data, which is the upload-safe half.
     public class BakedDataTests
     {
+        private static EditorCurveBinding FloatBinding(string property) =>
+            EditorCurveBinding.FloatCurve("", typeof(Transform), property);
         private static VRCBakedSplineData StraightLine(int frames = 11)
         {
             var data = ScriptableObject.CreateInstance<VRCBakedSplineData>();
@@ -44,9 +46,11 @@ namespace Cuebitt.VRCUnitySplines.Tests
             var clip = AnimateClipBaker.BakeClip(data, 4f, BakedLoopMode.Loop);
             Assert.AreEqual(4f, clip.length, 1e-3f);
             Assert.AreEqual(WrapMode.Loop, clip.wrapMode);
-            Assert.IsNotNull(clip.GetCurve("", typeof(Transform), "m_LocalPosition.x"));
-            Assert.IsNotNull(clip.GetCurve("", typeof(Transform), "m_LocalRotation.w"));
-            Assert.AreEqual(11, clip.GetCurve("", typeof(Transform), "m_LocalPosition.x").length);
+            var posX = AnimationUtility.GetEditorCurve(clip, FloatBinding("m_LocalPosition.x"));
+            var rotW = AnimationUtility.GetEditorCurve(clip, FloatBinding("m_LocalRotation.w"));
+            Assert.IsNotNull(posX);
+            Assert.IsNotNull(rotW);
+            Assert.AreEqual(11, posX.length);
             Object.DestroyImmediate(data);
         }
 
