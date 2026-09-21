@@ -1,0 +1,22 @@
+{
+    "name": "Cuebitt.VRCUnitySplines.Tests",
+    "rootNamespace": "Cuebitt.VRCUnitySplines.Tests",
+    "references": [
+        "Cuebitt.VRCUnitySplines.Runtime",
+        "Cuebitt.VRCUnitySplines.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}
