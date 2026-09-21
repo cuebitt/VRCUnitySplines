@@ -63,8 +63,11 @@ namespace Cuebitt.VRCUnitySplines.Editor
 
         private void BakeClip()
         {
+            // clip lives next to the baked data it came from
             string dir = System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(_data));
             string path = AssetDatabase.GenerateUniqueAssetPath(dir + "/" + _target.name + "_SplineAnim.anim");
+
+            // bake, save, then wire an animator on the target
             var clip = AnimateClipBaker.BakeClip(_data, _duration, _loop);
             AssetDatabase.CreateAsset(clip, path);
             AssetDatabase.SaveAssets();
@@ -75,6 +78,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
         // outputs without installing anything beyond this package.
         public static void CreateDemo()
         {
+            // fixed S-curve, 65 frames is plenty smooth for a demo
             const int frames = 65;
             var data = ScriptableObject.CreateInstance<VRCBakedSplineData>();
             data.positions = new Vector3[frames];
@@ -82,6 +86,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
             data.upVectors = new Vector3[frames];
             data.cumulativeLengths = new float[frames];
 
+            // lay out the S shape and accumulate length as we go
             float length = 0f;
             Vector3 prev = Vector3.zero;
             for (int i = 0; i < frames; i++)
@@ -94,6 +99,8 @@ namespace Cuebitt.VRCUnitySplines.Editor
                 data.cumulativeLengths[i] = length;
                 prev = p;
             }
+
+            // tangents from neighbors, good enough without real splines
             for (int i = 0; i < frames; i++)
             {
                 Vector3 a = data.positions[Mathf.Max(0, i - 1)];
@@ -104,11 +111,13 @@ namespace Cuebitt.VRCUnitySplines.Editor
             data.closed = false;
             data.sourceDescription = "Built-in demo S-curve";
 
+            // persist the asset in a demo folder
             if (!AssetDatabase.IsValidFolder("Assets/VRCUnitySplinesDemo"))
                 AssetDatabase.CreateFolder("Assets", "VRCUnitySplinesDemo");
             AssetDatabase.CreateAsset(data, "Assets/VRCUnitySplinesDemo/DemoSpline.asset");
             AssetDatabase.SaveAssets();
 
+            // cube follower with a pingpong clip, select it so it is easy to find
             var demo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             demo.name = "DemoSplineFollower";
             var clip = AnimateClipBaker.BakeClip(data, 6f, BakedLoopMode.PingPong);

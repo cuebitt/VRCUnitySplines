@@ -14,14 +14,17 @@ namespace Cuebitt.VRCUnitySplines.Editor
 
         public bool OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
         {
+            // sweep the scene for anything Splines-flavored
             var containers = Object.FindObjectsOfType<SplineContainer>(true);
             var animates = Object.FindObjectsOfType<SplineAnimate>(true);
             var instances = Object.FindObjectsOfType<SplineInstantiate>(true);
             var extrudes = Object.FindObjectsOfType<SplineExtrude>(true);
 
+            // clean scene, let the build through
             int total = containers.Length + animates.Length + instances.Length + extrudes.Length;
             if (total == 0) return true;
 
+            // name one so the user knows where to look
             string first = containers.Length > 0 ? containers[0].name
                 : animates.Length > 0 ? animates[0].name
                 : instances.Length > 0 ? instances[0].name : extrudes[0].name;

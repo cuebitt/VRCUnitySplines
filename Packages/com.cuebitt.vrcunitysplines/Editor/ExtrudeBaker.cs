@@ -11,8 +11,10 @@ namespace Cuebitt.VRCUnitySplines.Editor
     {
         public static Mesh BakeMesh(SplineExtrude extrude)
         {
+            // make sure the live mesh is up to date first
             extrude.Rebuild();
 
+            // grab whatever it generated
             var filter = extrude.GetComponent<MeshFilter>();
             Mesh source = filter != null ? filter.sharedMesh : null;
             if (source == null)
@@ -21,9 +23,11 @@ namespace Cuebitt.VRCUnitySplines.Editor
                 return null;
             }
 
+            // duplicate so the asset owns its own copy
             var copy = Object.Instantiate(source);
             copy.name = extrude.gameObject.name + "_BakedMesh";
 
+            // let the user pick the save spot, cancelled means no asset
             string path = EditorUtility.SaveFilePanelInProject(
                 "Save Baked Extrude Mesh", copy.name, "asset",
                 "Where to store the baked extrude mesh.");
@@ -33,6 +37,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
             AssetDatabase.CreateAsset(copy, path);
             AssetDatabase.SaveAssets();
 
+            // point the filter at the persisted mesh
             Mesh baked = AssetDatabase.LoadAssetAtPath<Mesh>(path);
             filter.sharedMesh = baked;
             EditorUtility.SetDirty(filter);

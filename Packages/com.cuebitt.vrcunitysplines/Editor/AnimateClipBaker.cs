@@ -13,6 +13,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
     {
         public static AnimationClip BakeClip(VRCBakedSplineData data, float durationSeconds, BakedLoopMode loop)
         {
+            // clip shell plus wrap mode up front
             int frames = data.positions.Length;
             var clip = new AnimationClip { frameRate = 60f };
             clip.wrapMode = loop switch
@@ -22,6 +23,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
                 _ => WrapMode.ClampForever,
             };
 
+            // one key array per animated channel
             var posX = new Keyframe[frames];
             var posY = new Keyframe[frames];
             var posZ = new Keyframe[frames];
@@ -30,6 +32,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
             var rotZ = new Keyframe[frames];
             var rotW = new Keyframe[frames];
 
+            // frames sit evenly by arc length, so even timing means constant speed
             for (int i = 0; i < frames; i++)
             {
                 float time = durationSeconds * i / (frames - 1);
@@ -44,9 +47,11 @@ namespace Cuebitt.VRCUnitySplines.Editor
                 rotW[i] = new Keyframe(time, q.w);
             }
 
+            // straight tangents between keys, no easing surprises
             SetLinearTangents(posX); SetLinearTangents(posY); SetLinearTangents(posZ);
             SetLinearTangents(rotX); SetLinearTangents(rotY); SetLinearTangents(rotZ); SetLinearTangents(rotW);
 
+            // attach all seven curves to the clip root
             clip.SetCurve("", typeof(Transform), "m_LocalPosition.x", new AnimationCurve(posX));
             clip.SetCurve("", typeof(Transform), "m_LocalPosition.y", new AnimationCurve(posY));
             clip.SetCurve("", typeof(Transform), "m_LocalPosition.z", new AnimationCurve(posZ));
@@ -55,6 +60,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
             clip.SetCurve("", typeof(Transform), "m_LocalRotation.z", new AnimationCurve(rotZ));
             clip.SetCurve("", typeof(Transform), "m_LocalRotation.w", new AnimationCurve(rotW));
 
+            // looping lives in the clip settings, not just the wrap mode
             var settings = AnimationUtility.GetAnimationClipSettings(clip);
             settings.loopTime = loop != BakedLoopMode.Once;
             settings.loopBlend = loop == BakedLoopMode.Loop && data.closed;
@@ -64,13 +70,17 @@ namespace Cuebitt.VRCUnitySplines.Editor
 
         public static Animator WireAnimator(GameObject target, AnimationClip clip, float startOffset01)
         {
+            // fresh controller next to the clip
             string dir = System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(clip));
             string controllerPath = AssetDatabase.GenerateUniqueAssetPath(dir + "/" + target.name + "_Spline.controller");
             var controller = AnimatorController.CreateAnimatorControllerAtPath(controllerPath);
+
+            // single state playing the clip
             var state = controller.layers[0].stateMachine.AddState(clip.name);
             state.motion = clip;
             state.speed = 1f;
 
+            // hook it up, root motion stays off since the clip moves locally
             var animator = target.GetComponent<Animator>();
             if (animator == null) animator = target.AddComponent<Animator>();
             animator.runtimeAnimatorController = controller;
@@ -81,6 +91,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
 
         private static void SetLinearTangents(Keyframe[] keys)
         {
+            // central differences, ends just reuse their neighbor
             for (int i = 0; i < keys.Length; i++)
             {
                 int prev = Mathf.Max(0, i - 1);

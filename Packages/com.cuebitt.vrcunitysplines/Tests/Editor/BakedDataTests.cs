@@ -13,6 +13,7 @@ namespace Cuebitt.VRCUnitySplines.Tests
             EditorCurveBinding.FloatCurve("", typeof(Transform), property);
         private static VRCBakedSplineData StraightLine(int frames = 11)
         {
+            // dead simple line along x, one unit per frame
             var data = ScriptableObject.CreateInstance<VRCBakedSplineData>();
             data.positions = new Vector3[frames];
             data.tangents = new Vector3[frames];
@@ -32,6 +33,7 @@ namespace Cuebitt.VRCUnitySplines.Tests
         [Test]
         public void LengthTable_IsMonotonicAndTotalsLength()
         {
+            // lengths should climb steadily and sum to the full line
             var data = StraightLine();
             Assert.AreEqual(10f, data.totalLength, 1e-5f);
             for (int i = 1; i < data.cumulativeLengths.Length; i++)
@@ -42,6 +44,7 @@ namespace Cuebitt.VRCUnitySplines.Tests
         [Test]
         public void ClipBaker_EmitsPositionAndRotationCurvesAtDuration()
         {
+            // one key per frame, clip as long as asked, looping as told
             var data = StraightLine();
             var clip = AnimateClipBaker.BakeClip(data, 4f, BakedLoopMode.Loop);
             Assert.AreEqual(4f, clip.length, 1e-3f);
@@ -57,6 +60,7 @@ namespace Cuebitt.VRCUnitySplines.Tests
         [Test]
         public void InstantiateBaker_PlacesRequestedCount()
         {
+            // temp prefab in, five instances out along the line
             var data = StraightLine();
             var source = new GameObject("BakeTestSource");
             string prefabPath = "Assets/BakeTestPrefab.prefab";
@@ -67,10 +71,12 @@ namespace Cuebitt.VRCUnitySplines.Tests
             var group = InstantiateBaker.BakeByCount(data, holder.transform, prefab, 5,
                 Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 1f, 1f, seed: 7);
 
+            // ends land exactly on the line ends
             Assert.AreEqual(5, group.transform.childCount);
             Assert.AreEqual(new Vector3(0f, 0f, 0f), group.transform.GetChild(0).localPosition);
             Assert.AreEqual(new Vector3(10f, 0f, 0f), group.transform.GetChild(4).localPosition);
 
+            // tidy up everything the test made
             Object.DestroyImmediate(holder);
             Object.DestroyImmediate(source);
             AssetDatabase.DeleteAsset(prefabPath);

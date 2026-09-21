@@ -27,16 +27,22 @@ namespace Cuebitt.VRCUnitySplines
 
         void Start()
         {
+            // fall back to our own transform when no target set
             if (target == null) target = transform;
             ApplyDistance(_distance);
         }
 
         void Update()
         {
+            // opt-in only, off unless someone asked for it
             if (!driveEveryFrame || spline == null || spline.totalLength <= 0f) return;
+
             _distance += speed * Time.deltaTime;
+
+            // wrap closed loops, clamp open ones
             if (spline.closed) _distance %= spline.totalLength;
             else _distance = Mathf.Min(_distance, spline.totalLength);
+
             ApplyDistance(_distance);
         }
 
@@ -53,6 +59,7 @@ namespace Cuebitt.VRCUnitySplines
 
         public Vector3 GetPositionAt(float normalizedTime)
         {
+            // read-only query, never touches the target
             if (!HasData()) return transform.position;
             return SamplePosition(Mathf.Clamp01(normalizedTime) * spline.totalLength);
         }
@@ -61,10 +68,15 @@ namespace Cuebitt.VRCUnitySplines
         {
             if (!HasData() || target == null) return;
             _distance = distance;
+
+            // sample each channel then pose the target
             Vector3 pos = SamplePosition(distance);
             Vector3 tan = SampleDirection(spline.tangents, distance);
             Vector3 up = SampleDirection(spline.upVectors, distance);
+
             target.localPosition = pos;
+
+            // skip rotation when the tangent collapsed
             if (tan.sqrMagnitude > 1e-8f)
                 target.localRotation = Quaternion.LookRotation(tan, up.sqrMagnitude > 1e-8f ? up : Vector3.up);
         }
@@ -76,6 +88,7 @@ namespace Cuebitt.VRCUnitySplines
 
         private int FindFrame(float distance)
         {
+            // first frame at or past the distance
             float[] lengths = spline.cumulativeLengths;
             for (int i = 1; i < lengths.Length; i++)
                 if (lengths[i] >= distance) return i;
@@ -84,6 +97,7 @@ namespace Cuebitt.VRCUnitySplines
 
         private Vector3 SamplePosition(float distance)
         {
+            // blend between the two bracketing frames
             int i = FindFrame(distance);
             float[] lengths = spline.cumulativeLengths;
             float span = lengths[i] - lengths[i - 1];
@@ -93,6 +107,7 @@ namespace Cuebitt.VRCUnitySplines
 
         private Vector3 SampleDirection(Vector3[] vectors, float distance)
         {
+            // same blend as positions, then renormalize
             int i = FindFrame(distance);
             float[] lengths = spline.cumulativeLengths;
             float span = lengths[i] - lengths[i - 1];
