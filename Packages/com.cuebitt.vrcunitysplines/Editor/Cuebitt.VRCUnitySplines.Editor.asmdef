@@ -4,6 +4,7 @@
     "references": [
         "Cuebitt.VRCUnitySplines.Runtime",
         "Unity.Splines",
+        "Unity.Mathematics",
         "VRC.SDKBase.Editor.BuildPipeline"
     ],
     "includePlatforms": [

@@ -33,9 +33,10 @@ namespace Cuebitt.VRCUnitySplines.Editor
             AssetDatabase.CreateAsset(copy, path);
             AssetDatabase.SaveAssets();
 
-            extrude.targetMesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
-            EditorUtility.SetDirty(extrude);
-            return extrude.targetMesh;
+            Mesh baked = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            filter.sharedMesh = baked;
+            EditorUtility.SetDirty(filter);
+            return baked;
         }
     }
 }

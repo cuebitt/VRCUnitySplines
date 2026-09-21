@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Splines;
@@ -27,7 +28,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
             for (int i = 0; i < frames; i++)
             {
                 float t = frames == 1 ? 0f : (float)i / (frames - 1);
-                container.Evaluate(splineIndex, t, out Vector3 worldPos, out Vector3 worldTan, out Vector3 worldUp);
+                container.Evaluate(splineIndex, t, out float3 worldPos, out float3 worldTan, out float3 worldUp);
 
                 Vector3 pos = root.InverseTransformPoint(worldPos);
                 Vector3 tan = root.InverseTransformDirection(worldTan);
