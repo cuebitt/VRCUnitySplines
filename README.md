@@ -28,7 +28,7 @@ Releases publish a VPM listing from this repo, so install and updates flow throu
 ## Usage
 
 1. Build your path with GameObject > Spline, like you normally would.
-2. Open VRCUnitySplines > Bake Window and point it at the SplineContainer.
+2. Open Tools > VRCUnitySplines > Bake Spline and point it at the SplineContainer.
 3. Press Bake Data. Keep baked followers under the same transform and they track it if the parent moves.
 4. Pick an output. Leave the Splines components in place for later edits, they are stripped on build and disabled in play mode automatically.
 

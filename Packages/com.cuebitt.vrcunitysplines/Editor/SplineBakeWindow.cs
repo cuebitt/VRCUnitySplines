@@ -22,7 +22,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
         private int _seed = 1234;
         private SplineExtrude _extrude;
 
-        [MenuItem("VRCUnitySplines/Bake Window")]
+        [MenuItem("Tools/VRCUnitySplines/Bake Spline")]
         public static void Open() => GetWindow<SplineBakeWindow>("Spline Bake");
 
         private void OnGUI()
