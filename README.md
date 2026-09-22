@@ -1,6 +1,6 @@
 # VRCUnitySplines
 
-Unity has a built-in [Splines](https://docs.unity3d.com/Packages/com.unity.splines@2.9/manual/index.html) package, but it's not whitelisted by VRChat ([yet](https://feedback.vrchat.com/udon/p/expose-spline-components-for-world-creation)). This package, VRCUnitySplines, allows you to use Unity Splines in a VRChat World project by baking the splines in the editor. This way, only whitelisted runtime components are used.
+Unity has a built-in [Splines](https://docs.unity3d.com/Packages/com.unity.splines@2.9/manual/index.html) package, but it's not whitelisted by VRChat ([yet](https://feedback.vrchat.com/udon/p/expose-spline-components-for-world-creation)). This package, VRCUnitySplines, allows you to use Unity Splines in a VRChat World project by baking the splines' animations in the editor. This way, only whitelisted runtime components are used.
 
 ## How it works
 
@@ -40,7 +40,7 @@ Baked animation clips are the default output of the spline animation baker. Thes
 
 A VRCTween driver can alternatively be used. This also runs outside Udon, so it should come with a minimal performance cost. You can use this if you'd prefer to move a GameObject programmatically instead of using an Animator. The baked positions are fed into `TweenLocalPath`.
 
-The Udon-based spline animation evaluator is available. You can use this when you want to scrub through the animation or query a position at a distance. This is much slower than the previous two, and is not recommended unless you specifically need it (you probably don't).
+An Udon-based spline animation evaluator is available. You can use this when you want to scrub through the animation or query a position at a distance. This is much slower than the previous two, and is not recommended unless you specifically need it (you probably don't).
 
 Prefab scatter and extruded meshes are covered by Unity's own components: use `SplineInstantiate` for scatter (its inspector has a Bake button) and `SplineExtrude` for tubes and roads (the generated mesh is saved as an asset when you add the component; the Splines components are stripped from builds automatically). These are just normal GameObjects and meshes, so they shouldn't introduce any additional performance cost.
 
