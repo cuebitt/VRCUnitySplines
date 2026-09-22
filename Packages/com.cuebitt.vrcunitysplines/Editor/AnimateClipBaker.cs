@@ -47,18 +47,27 @@ namespace Cuebitt.VRCUnitySplines.Editor
                 rotW[i] = new Keyframe(time, q.w);
             }
 
-            // straight tangents between keys, no easing surprises
-            SetLinearTangents(posX); SetLinearTangents(posY); SetLinearTangents(posZ);
-            SetLinearTangents(rotX); SetLinearTangents(rotY); SetLinearTangents(rotZ); SetLinearTangents(rotW);
-
             // attach all seven curves to the clip root
-            clip.SetCurve("", typeof(Transform), "m_LocalPosition.x", new AnimationCurve(posX));
-            clip.SetCurve("", typeof(Transform), "m_LocalPosition.y", new AnimationCurve(posY));
-            clip.SetCurve("", typeof(Transform), "m_LocalPosition.z", new AnimationCurve(posZ));
-            clip.SetCurve("", typeof(Transform), "m_LocalRotation.x", new AnimationCurve(rotX));
-            clip.SetCurve("", typeof(Transform), "m_LocalRotation.y", new AnimationCurve(rotY));
-            clip.SetCurve("", typeof(Transform), "m_LocalRotation.z", new AnimationCurve(rotZ));
-            clip.SetCurve("", typeof(Transform), "m_LocalRotation.w", new AnimationCurve(rotW));
+            string[] props =
+            {
+                "m_LocalPosition.x", "m_LocalPosition.y", "m_LocalPosition.z",
+                "m_LocalRotation.x", "m_LocalRotation.y", "m_LocalRotation.z", "m_LocalRotation.w"
+            };
+            Keyframe[][] channelKeys = { posX, posY, posZ, rotX, rotY, rotZ, rotW };
+            for (int c = 0; c < props.Length; c++)
+            {
+                var curve = new AnimationCurve(channelKeys[c]);
+
+                // straight tangents between keys, no easing surprises
+                for (int i = 0; i < curve.length; i++)
+                {
+                    AnimationUtility.SetKeyBroken(curve, i, true);
+                    AnimationUtility.SetKeyLeftTangentMode(curve, i, AnimationUtility.TangentMode.Linear);
+                    AnimationUtility.SetKeyRightTangentMode(curve, i, AnimationUtility.TangentMode.Linear);
+                }
+
+                clip.SetCurve("", typeof(Transform), props[c], curve);
+            }
 
             // looping lives in the clip settings, not just the wrap mode
             var settings = AnimationUtility.GetAnimationClipSettings(clip);
@@ -68,7 +77,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
             return clip;
         }
 
-        public static Animator WireAnimator(GameObject target, AnimationClip clip, float startOffset01)
+        public static Animator WireAnimator(GameObject target, AnimationClip clip)
         {
             // fresh controller next to the clip
             string dir = System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(clip));
@@ -85,22 +94,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
             if (animator == null) animator = target.AddComponent<Animator>();
             animator.runtimeAnimatorController = controller;
             animator.applyRootMotion = false;
-            if (startOffset01 > 0f) animator.Play(0, 0, startOffset01 % 1f);
             return animator;
-        }
-
-        private static void SetLinearTangents(Keyframe[] keys)
-        {
-            // central differences, ends just reuse their neighbor
-            for (int i = 0; i < keys.Length; i++)
-            {
-                int prev = Mathf.Max(0, i - 1);
-                int next = Mathf.Min(keys.Length - 1, i + 1);
-                float dt = keys[next].time - keys[prev].time;
-                float slope = dt > 1e-9f ? (keys[next].value - keys[prev].value) / dt : 0f;
-                keys[i].inTangent = slope;
-                keys[i].outTangent = slope;
-            }
         }
     }
 }

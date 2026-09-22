@@ -17,10 +17,6 @@ namespace Cuebitt.VRCUnitySplines.Editor
         private BakedLoopMode _loop = BakedLoopMode.Loop;
         private VRCSplineTweenDriver _tweenDriver;
         private VRCSplineEvaluator _evaluator;
-        private GameObject _prefab;
-        private int _count = 20;
-        private int _seed = 1234;
-        private SplineExtrude _extrude;
 
         [MenuItem("Tools/VRCUnitySplines/Bake Spline")]
         public static void Open() => GetWindow<SplineBakeWindow>("Spline Bake");
@@ -53,34 +49,25 @@ namespace Cuebitt.VRCUnitySplines.Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("3. Baked components (Udon data)", EditorStyles.boldLabel);
             _tweenDriver = (VRCSplineTweenDriver)EditorGUILayout.ObjectField("Tween driver", _tweenDriver, typeof(VRCSplineTweenDriver), true);
-            if (GUILayout.Button("Fill Tween Driver") && _tweenDriver != null)
-                BakedSplineComponentBaker.Fill(_data, _tweenDriver);
+            if (GUILayout.Button("Fill Tween Driver") && _data != null && _tweenDriver != null)
+            {
+                // the tween driver only needs positions and the closed flag
+                _tweenDriver.positions = _data.positions;
+                _tweenDriver.closed = _data.closed;
+                EditorUtility.SetDirty(_tweenDriver);
+            }
             _evaluator = (VRCSplineEvaluator)EditorGUILayout.ObjectField("Evaluator", _evaluator, typeof(VRCSplineEvaluator), true);
-            if (GUILayout.Button("Fill Evaluator") && _evaluator != null)
-                BakedSplineComponentBaker.Fill(_data, _evaluator);
-
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("4. Prefab scatter", EditorStyles.boldLabel);
-            _prefab = (GameObject)EditorGUILayout.ObjectField("Prefab", _prefab, typeof(GameObject), false);
-            _count = EditorGUILayout.IntField("Count", Mathf.Max(1, _count));
-            _seed = EditorGUILayout.IntField("Seed", _seed);
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Bake Instances") && _prefab != null)
-                InstantiateBaker.BakeByCount(_data, _target != null ? _target.transform.parent : null,
-                    _prefab, _count, Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 1f, 1f, _seed);
-            if (GUILayout.Button("Clear Instances"))
-                InstantiateBaker.ClearBaked(_target != null && _target.transform.parent != null ? _target.transform.parent : null);
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("5. Extrude", EditorStyles.boldLabel);
-            _extrude = (SplineExtrude)EditorGUILayout.ObjectField("SplineExtrude", _extrude, typeof(SplineExtrude), true);
-            if (GUILayout.Button("Bake Extrude Mesh") && _extrude != null)
-                ExtrudeBaker.BakeMesh(_extrude);
-
-            EditorGUILayout.Space();
-            if (GUILayout.Button("Create Demo (no Splines needed)"))
-                CreateDemo();
+            if (GUILayout.Button("Fill Evaluator") && _data != null && _evaluator != null)
+            {
+                // the evaluator needs every channel for distance queries
+                _evaluator.positions = _data.positions;
+                _evaluator.tangents = _data.tangents;
+                _evaluator.upVectors = _data.upVectors;
+                _evaluator.cumulativeLengths = _data.cumulativeLengths;
+                _evaluator.totalLength = _data.totalLength;
+                _evaluator.closed = _data.closed;
+                EditorUtility.SetDirty(_evaluator);
+            }
         }
 
         private void BakeClip()
@@ -95,11 +82,12 @@ namespace Cuebitt.VRCUnitySplines.Editor
             var clip = AnimateClipBaker.BakeClip(_data, _duration, _loop);
             AssetDatabase.CreateAsset(clip, path);
             AssetDatabase.SaveAssets();
-            AnimateClipBaker.WireAnimator(_target, clip, 0f);
+            AnimateClipBaker.WireAnimator(_target, clip);
         }
 
         // Builds a small S-curve bake from scratch so new users can try the
         // outputs without installing anything beyond this package.
+        [MenuItem("Tools/VRCUnitySplines/Create Demo Spline")]
         public static void CreateDemo()
         {
             // fixed S-curve, 65 frames is plenty smooth for a demo
@@ -145,7 +133,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
             var clip = AnimateClipBaker.BakeClip(data, 6f, BakedLoopMode.PingPong);
             AssetDatabase.CreateAsset(clip, "Assets/VRCUnitySplinesDemo/DemoSplineAnim.anim");
             AssetDatabase.SaveAssets();
-            AnimateClipBaker.WireAnimator(demo, clip, 0f);
+            AnimateClipBaker.WireAnimator(demo, clip);
             Selection.activeGameObject = demo;
         }
     }

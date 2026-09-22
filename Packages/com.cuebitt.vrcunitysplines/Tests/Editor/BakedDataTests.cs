@@ -56,28 +56,22 @@ namespace Cuebitt.VRCUnitySplines.Tests
         }
 
         [Test]
-        public void InstantiateBaker_PlacesRequestedCount()
+        public void Evaluator_GetPositionAt_SamplesBakedLine()
         {
-            // temp prefab in, five instances out along the line
+            // midpoint of the 10-unit line sits at x=5
             var data = StraightLine();
-            var source = new GameObject("BakeTestSource");
-            string prefabPath = "Assets/BakeTestPrefab.prefab";
-            PrefabUtility.SaveAsPrefabAsset(source, prefabPath);
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            var holder = new GameObject("BakeTestHolder");
+            var go = new GameObject("EvaluatorTest");
+            var evaluator = go.AddComponent<Cuebitt.VRCUnitySplines.VRCSplineEvaluator>();
+            evaluator.positions = data.positions;
+            evaluator.tangents = data.tangents;
+            evaluator.upVectors = data.upVectors;
+            evaluator.cumulativeLengths = data.cumulativeLengths;
+            evaluator.totalLength = data.totalLength;
+            evaluator.closed = data.closed;
 
-            var group = InstantiateBaker.BakeByCount(data, holder.transform, prefab, 5,
-                Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 1f, 1f, seed: 7);
+            Assert.AreEqual(new Vector3(5f, 0f, 0f), evaluator.GetPositionAt(0.5f));
 
-            // ends land exactly on the line ends
-            Assert.AreEqual(5, group.transform.childCount);
-            Assert.AreEqual(new Vector3(0f, 0f, 0f), group.transform.GetChild(0).localPosition);
-            Assert.AreEqual(new Vector3(10f, 0f, 0f), group.transform.GetChild(4).localPosition);
-
-            // tidy up everything the test made
-            Object.DestroyImmediate(holder);
-            Object.DestroyImmediate(source);
-            AssetDatabase.DeleteAsset(prefabPath);
+            Object.DestroyImmediate(go);
         }
     }
 }

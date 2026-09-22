@@ -34,32 +34,12 @@ namespace Cuebitt.VRCUnitySplines
         [Tooltip("Object to move. Defaults to this transform.")]
         public Transform target;
 
-        [Tooltip("Advance in Update. Off by default; call the setters instead.")]
-        public bool driveEveryFrame;
-
-        [Tooltip("Traversal speed in local units per second when driving.")]
-        public float speed = 1f;
-
         private float _distance;
 
         void Start()
         {
             // fall back to our own transform when no target set
             if (target == null) target = transform;
-            ApplyDistance(_distance);
-        }
-
-        void Update()
-        {
-            // opt-in only, off unless someone asked for it
-            if (!driveEveryFrame || !HasData() || totalLength <= 0f) return;
-
-            _distance += speed * Time.deltaTime;
-
-            // wrap closed loops, clamp open ones
-            if (closed) _distance %= totalLength;
-            else _distance = Mathf.Min(_distance, totalLength);
-
             ApplyDistance(_distance);
         }
 
@@ -86,12 +66,16 @@ namespace Cuebitt.VRCUnitySplines
             if (!HasData() || target == null) return;
             _distance = distance;
 
-            // sample each channel then pose the target
-            Vector3 pos = SamplePosition(distance);
-            Vector3 tan = SampleDirection(tangents, distance);
-            Vector3 up = SampleDirection(upVectors, distance);
+            // one frame lookup shared by all three channels
+            int i = FindFrame(distance);
+            float span = cumulativeLengths[i] - cumulativeLengths[i - 1];
+            float f = span > 1e-9f ? (distance - cumulativeLengths[i - 1]) / span : 0f;
 
-            target.localPosition = pos;
+            // pose the target from the blended channels
+            target.localPosition = Vector3.Lerp(positions[i - 1], positions[i], f);
+
+            Vector3 tan = Vector3.Lerp(tangents[i - 1], tangents[i], f).normalized;
+            Vector3 up = Vector3.Lerp(upVectors[i - 1], upVectors[i], f).normalized;
 
             // skip rotation when the tangent collapsed
             if (tan.sqrMagnitude > 1e-8f)
@@ -119,15 +103,6 @@ namespace Cuebitt.VRCUnitySplines
             float span = cumulativeLengths[i] - cumulativeLengths[i - 1];
             float f = span > 1e-9f ? (distance - cumulativeLengths[i - 1]) / span : 0f;
             return Vector3.Lerp(positions[i - 1], positions[i], f);
-        }
-
-        private Vector3 SampleDirection(Vector3[] vectors, float distance)
-        {
-            // same blend as positions, then renormalize
-            int i = FindFrame(distance);
-            float span = cumulativeLengths[i] - cumulativeLengths[i - 1];
-            float f = span > 1e-9f ? (distance - cumulativeLengths[i - 1]) / span : 0f;
-            return Vector3.Lerp(vectors[i - 1], vectors[i], f).normalized;
         }
     }
 }

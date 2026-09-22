@@ -6,7 +6,7 @@ Unity has a built-in [Splines](https://docs.unity3d.com/Packages/com.unity.splin
 
 An editor script reads each `SplineContainer` spline through the public Splines API and resamples it in memory: positions, tangents, up vectors, and an arc-length table, all in the container's local space.
 
-For the tween driver and evaluator the bake window copies plain arrays directly onto the components so that Udon can read them at runtime. Clips, scatter, and extruded meshes are baked into their corresponding asset or configuration.
+For the tween driver and evaluator the bake window copies plain arrays directly onto the components so that Udon can read them at runtime. Clips are baked into assets.
 
 The live Splines components are stripped automatically while a build or upload runs, and disabled around editor play mode, so you can keep them in the scene for further editing.
 
@@ -32,7 +32,7 @@ Releases publish a VPM listing from this repo, so install and updates flow throu
 3. Press Bake Data. Keep baked followers under the same transform and they track it if the parent moves.
 4. Pick an output. Leave the Splines components in place for later edits, they are stripped on build and disabled in play mode automatically.
 
-You can use the `Create Demo` button in the bake window to add a demo spline that you can use to test this package.
+You can use Tools > VRCUnitySplines > Create Demo Spline to add a demo spline that you can use to test this package.
 
 ## Output
 
@@ -40,9 +40,9 @@ Baked animation clips are the default output of the spline animation baker. Thes
 
 A VRCTween driver can alternatively be used. This also runs outside Udon, so it should come with a minimal performance cost. You can use this if you'd prefer to move a GameObject programmatically instead of using an Animator. The baked positions are fed into `TweenLocalPath`.
 
-The Udon-based spline animation evaluator is available. You can use this when you want to scrub through the animation or query a position at a distance. This is much slower than the previous two, and is not recommended unless you specifically need it (you probably don't). Leave `driveEveryFrame` off unless you have a reason to use it.
+The Udon-based spline animation evaluator is available. You can use this when you want to scrub through the animation or query a position at a distance. This is much slower than the previous two, and is not recommended unless you specifically need it (you probably don't).
 
-Prefab scatter bakes to plain GameObjects by count or spacing, with a seed so the result is reproducible. Extrude snapshot copies `SplineExtrude` output into a Mesh asset, turning the road or tube into a normal mesh. These are just normal GameObjects and meshes, so they shouldn't introduce any additional performance cost.
+Prefab scatter and extruded meshes are covered by Unity's own components: use `SplineInstantiate` for scatter (its inspector has a Bake button) and `SplineExtrude` for tubes and roads (the generated mesh is saved as an asset when you add the component; the Splines components are stripped from builds automatically). These are just normal GameObjects and meshes, so they shouldn't introduce any additional performance cost.
 
 ## Not Included
 

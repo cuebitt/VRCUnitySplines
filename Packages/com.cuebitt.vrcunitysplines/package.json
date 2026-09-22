@@ -3,7 +3,7 @@
   "displayName": "VRCUnitySplines",
   "version": "1.0.0",
   "unity": "2022.3",
-  "description": "Editor-time baking that brings Unity Splines to VRChat worlds: animated paths, prefab scatter and extruded meshes with no Splines dependency at upload.",
+  "description": "Editor-time baking that brings Unity Splines to VRChat worlds: animated paths with no Splines dependency at upload.",
   "license": "MIT",
   "author": {
     "name": "Cuebitt",

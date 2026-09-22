@@ -13,14 +13,14 @@ upload-safe VRChat world content.
   baking. The bake window copies plain arrays onto Udon components
   because Udon cannot read custom types at runtime.
 - Animate output: baked AnimationClip with Animator wiring (default),
-  with loop modes and start offsets.
+  with loop modes.
 - Animate fallback: VRCTween path driver for position-only motion with
   native timing.
 - Opt-in Udon evaluator for scrubbing and distance queries.
-- Instantiate output: seeded prefab scatter by count or spacing.
-- Extrude output: mesh snapshot from SplineExtrude to a Mesh asset.
-- Bake window with a demo generator that needs no Splines install.
+- Create Demo Spline menu item (Tools > VRCUnitySplines) that needs no
+  Splines install.
 - Live Splines components stay in the scene for editing: they are
   stripped automatically while a build or upload runs, and disabled
   around editor play mode so baked outputs run unopposed.
-- Edit-mode tests covering bake math without the Splines package.
+- Edit-mode tests covering bake and evaluator math without the Splines
+  package.

@@ -57,17 +57,5 @@ namespace Cuebitt.VRCUnitySplines.Editor
             data.sourceDescription = container.name + " [" + splineIndex + "] @" + samplesPerCurve + "/curve";
             return data;
         }
-
-        public static BakedSpline[] BakeAll(SplineContainer container, int samplesPerCurve = 32)
-        {
-            // one bake per spline, all in memory
-            var baked = new BakedSpline[container.Splines.Count];
-            for (int i = 0; i < baked.Length; i++)
-            {
-                baked[i] = Bake(container, i, samplesPerCurve);
-                if (baked[i] == null) return null;
-            }
-            return baked;
-        }
     }
 }

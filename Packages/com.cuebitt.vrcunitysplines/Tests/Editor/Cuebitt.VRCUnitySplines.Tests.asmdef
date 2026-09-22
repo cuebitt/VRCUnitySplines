@@ -3,7 +3,8 @@
     "rootNamespace": "Cuebitt.VRCUnitySplines.Tests",
     "references": [
         "Cuebitt.VRCUnitySplines.Runtime",
-        "Cuebitt.VRCUnitySplines.Editor"
+        "Cuebitt.VRCUnitySplines.Editor",
+        "UdonSharp.Runtime"
     ],
     "includePlatforms": [
         "Editor"
