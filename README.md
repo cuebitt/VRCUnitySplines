@@ -13,7 +13,7 @@ The live Splines components are stripped automatically while a build or upload r
 ## Requirements
 
 - Unity 2022.3 with the VRChat Worlds SDK, 3.10.4 or newer (the tween fallback uses VRCTween)
-- `com.unity.splines` 2.6.1, pulled in automatically as an editor-only dependency
+- `com.unity.splines` 2.6.1, pulled in automatically. Only editor code uses it, so it never ends up in a build.
 - UdonSharp, which ships with the Worlds SDK
 
 ## Add the package to Creator Companion
@@ -36,19 +36,19 @@ You can use the `Create Demo` button in the bake window to add a demo spline tha
 
 ## Output
 
-Baked animation clips are the default output of the spline animation baker. These run outside of Udon, so they are efficent and performant when compared to Udon-based per-frame movement.
+Baked animation clips are the default output of the spline animation baker. These run outside of Udon, so they are efficient and performant when compared to Udon-based per-frame movement.
 
 A VRCTween driver can alternatively be used. This also runs outside Udon, so it should come with a minimal performance cost. You can use this if you'd prefer to move a GameObject programmatically instead of using an Animator. The baked positions are fed into `TweenLocalPath`.
 
 The Udon-based spline animation evaluator is available. You can use this when you want to scrub through the animation or query a position at a distance. This is much slower than the previous two, and is not recommended unless you specifically need it (you probably don't). Leave `driveEveryFrame` off unless you have a reason to use it.
 
-Prefab scatter bakes to plain GameObjects by count or spacing, with seeded offsets and a scale range. Extrude snapshot copies `SplineExtrude` output into a Mesh asset, turning the road or tube into a normal mesh. These are just normal GameObjects and meshes, so they shouldn't introduce any additonal performance cost.
+Prefab scatter bakes to plain GameObjects by count or spacing, with a seed so the result is reproducible. Extrude snapshot copies `SplineExtrude` output into a Mesh asset, turning the road or tube into a normal mesh. These are just normal GameObjects and meshes, so they shouldn't introduce any additional performance cost.
 
 ## Not Included
 
-VRCUnitySplines bakes splines
+VRCUnitySplines bakes splines, so any runtime editing of splines is not possible. Runtime knot-linking, multi-container path blending, `SplineData` channels, nearest-point queries, and runtime knot edits are not currently possible.
 
-Anything needing live spline math at runtime stays out: `SplineData` channels, knot linking behavior, multi-container path blending, nearest-point queries, and runtime knot edits. Motion is also local-only, like all tween and animation approaches in VRChat. If you need it networked, sync the state yourself and trigger playback on every client.
+Network synchronization is not currently included. You will need to manage this yourself.
 
 ## License
 

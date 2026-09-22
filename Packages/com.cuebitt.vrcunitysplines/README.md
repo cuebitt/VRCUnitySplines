@@ -1,11 +1,11 @@
 # VRCUnitySplines
 
-Bakes Unity Splines into upload-safe VRChat world content: animation clips, prefab scatter, and extruded meshes. You build with normal Splines tools, press bake, and keep editing the splines whenever you want. They are stripped from builds automatically and disabled in play mode, so nothing upload-unsafe remains and your scene stays intact.
+Unity's Splines package isn't whitelisted by VRChat, so this package bakes your splines in the editor instead. Animation clips, prefab scatter, and extruded meshes end up in your world, and only whitelisted runtime components are used.
 
-Needs Unity 2022.3, Worlds SDK 3.10.4 or newer, and `com.unity.splines` 2.6.1 (pulled in automatically). Install through the Creator Companion listing, or clone the repo and open it directly. Full docs live in the repo root README.
+Open VRCUnitySplines > Bake Window, point it at a SplineContainer, press Bake Data, and pick an output. Animation clips are the default. The live Splines components can stay in your scene: they are stripped during builds and disabled in play mode, so you can keep editing and re-baking like you normally would.
 
-Bake with VRCUnitySplines > Bake Window. Clips are the default motion output, the VRCTween driver is the fallback, and the Udon evaluator is opt-in for scrubbing and queries. For the driver and evaluator, fill their baked arrays from the same window, they run on component fields only.
+Requires Unity 2022.3, the VRChat Worlds SDK 3.10.4 or newer (the tween fallback uses VRCTween), and `com.unity.splines` 2.6.1, which is pulled in automatically. UdonSharp ships with the Worlds SDK. Install through the Creator Companion listing, or clone the repository and open it directly.
 
-v1 skips anything needing live spline math at runtime: `SplineData` channels, knot linking, path blending, nearest-point queries, and knot edits. Motion is local-only.
+Runtime spline editing, `SplineData` channels, and network sync aren't included. The repository README has the full documentation.
 
-MIT, Copyright (c) 2026 Cuebitt. See LICENSE.
+MIT.
