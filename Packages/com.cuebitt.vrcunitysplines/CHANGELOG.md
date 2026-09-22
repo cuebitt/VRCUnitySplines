@@ -9,7 +9,10 @@ First release. Static editor-time baking from Unity Splines to
 upload-safe VRChat world content.
 
 - Baked spline data asset (positions, tangents, up vectors, arc-length
-  table) converted from any SplineContainer spline.
+  table) converted from any SplineContainer spline. The asset is an
+  editor-only intermediate; the bake window copies plain arrays onto
+  Udon components because Udon cannot read custom asset types at
+  runtime.
 - Animate output: baked AnimationClip with Animator wiring (default),
   with loop modes and start offsets.
 - Animate fallback: VRCTween path driver for position-only motion with

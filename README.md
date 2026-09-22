@@ -1,12 +1,10 @@
 # VRCUnitySplines
 
-Unity's Splines package does not survive a VRChat upload. Its types are not whitelisted, and the Burst and Jobs math behind it cannot run in Udon. This repo ships a VPM package that works around that by baking everything in the editor. You build paths with Unity's normal Splines tools, press bake, and the world ends up with plain animation clips, meshes, and prefabs. Nothing upload-unsafe remains.
-
-The package is `com.cuebitt.vrcunitysplines`, currently at 1.0.0. This repo doubles as the dev project: open it in Unity Hub and the package sits embedded under `Packages/`, ready to hack on.
+Unity has a built-in [Splines](https://docs.unity3d.com/Packages/com.unity.splines@2.9/manual/index.html) package, but it's not whitelisted by VRChat ([yet](https://feedback.vrchat.com/udon/p/expose-spline-components-for-world-creation)). This package, VRCUnitySplines, allows you to use Unity Splines in a VRChat World project by baking the splines in the editor. This way, only whitelisted runtime components are used.
 
 ## How it works
 
-A baker reads each `SplineContainer` spline through the public Splines API and resamples it into a `VRCBakedSplineData` asset: positions, tangents, up vectors, and an arc-length table, all in the container's local space. Every output below consumes that asset, never the live spline. When you are done baking, you delete the Splines components from the scene. A build guard stops the upload and names the leftovers if you forget.
+A baker reads each `SplineContainer` spline through the public Splines API and resamples it into a `VRCBakedSplineData` asset: positions, tangents, up vectors, and an arc-length table, all in the container's local space. That asset is an editor-only intermediate. Udon cannot read custom asset types at runtime, so for the tween driver and evaluator the bake window copies plain arrays directly onto the components. Clips, scatter, and extruded meshes never touch Udon in the first place. When you are done baking, you delete the Splines components from the scene. A build guard stops the upload and names the leftovers if you forget.
 
 ## Requirements
 
@@ -40,7 +38,7 @@ Baked animation clips are the default way to move things. Frames sit evenly by a
 
 The VRCTween driver is the fallback. It feeds baked positions to `TweenLocalPath`, so timing still runs natively. Position only, so reach for it when orientation does not matter or when you want tween controls without clips.
 
-The Udon evaluator is opt-in for runtime control like scrubbing a normalized time or querying a position at a distance. Leave `driveEveryFrame` off unless you have a reason. Udon is hundreds of times slower than C#, so per-frame evaluation is a budget you spend on purpose.
+The Udon evaluator is opt-in for runtime control like scrubbing a normalized time or querying a position at a distance. Assign it in the bake window and press Fill Evaluator to copy the baked arrays onto it; same story for the tween driver. Leave `driveEveryFrame` off unless you have a reason. Udon is hundreds of times slower than C#, so per-frame evaluation is a budget you spend on purpose.
 
 Prefab scatter bakes to plain GameObjects by count or spacing, with seeded offsets and a scale range. Extrude snapshot copies `SplineExtrude` output into a Mesh asset, turning the road or tube into a normal mesh.
 

@@ -4,7 +4,7 @@ Bakes Unity Splines into upload-safe VRChat world content: animation clips, pref
 
 Needs Unity 2022.3, Worlds SDK 3.10.4 or newer, and `com.unity.splines` 2.6.1 (pulled in automatically). Install through the Creator Companion listing, or clone the repo and open it directly. Full docs live in the repo root README.
 
-Bake with VRCUnitySplines > Bake Window. Clips are the default motion output, the VRCTween driver is the fallback, and the Udon evaluator is opt-in for scrubbing and queries.
+Bake with VRCUnitySplines > Bake Window. Clips are the default motion output, the VRCTween driver is the fallback, and the Udon evaluator is opt-in for scrubbing and queries. For the driver and evaluator, fill their baked arrays from the same window, they cannot read asset files at runtime.
 
 v1 skips anything needing live spline math at runtime: `SplineData` channels, knot linking, path blending, nearest-point queries, and knot edits. Motion is local-only.
 
