@@ -4,7 +4,7 @@ Unity has a built-in [Splines](https://docs.unity3d.com/Packages/com.unity.splin
 
 ## How it works
 
-A baker reads each `SplineContainer` spline through the public Splines API and resamples it into a `VRCBakedSplineData` asset: positions, tangents, up vectors, and an arc-length table, all in the container's local space. That asset is an editor-only intermediate. Udon cannot read custom asset types at runtime, so for the tween driver and evaluator the bake window copies plain arrays directly onto the components. Clips, scatter, and extruded meshes never touch Udon in the first place. When you are done baking, you delete the Splines components from the scene. A build guard stops the upload and names the leftovers if you forget.
+A baker reads each `SplineContainer` spline through the public Splines API and resamples it in memory: positions, tangents, up vectors, and an arc-length table, all in the container's local space. Nothing is saved to a data file. For the tween driver and evaluator the bake window copies plain arrays directly onto the components, because Udon cannot read custom types at runtime. Clips, scatter, and extruded meshes never touch Udon in the first place. When you are done baking, you delete the Splines components from the scene. A build guard stops the upload and names the leftovers if you forget.
 
 ## Requirements
 
@@ -48,7 +48,7 @@ Anything needing live spline math at runtime stays out: `SplineData` channels, k
 
 ## Repo layout
 
-- `Packages/com.cuebitt.vrcunitysplines/`: the shippable package. `Runtime/` holds the baked data asset, the tween driver, and the opt-in evaluator. `Editor/` holds the bakers, the bake window, and the build guard. `Tests/Editor/` holds edit-mode tests that run with no Splines package present.
+- `Packages/com.cuebitt.vrcunitysplines/`: the shippable package. `Runtime/` holds the tween driver and the opt-in evaluator, both plain-array Udon behaviours. `Editor/` holds the bakers, the in-memory bake data, the bake window, and the build guard. `Tests/Editor/` holds edit-mode tests that run with no Splines package present.
 - `Assets/Scenes/`: dev scenes for trying things out.
 - `Website/`: landing page source for the listing site.
 - `.github/workflows/`: release automation. Run the Build Release action and it zips the package from the version in `package.json`, publishes the release, and rebuilds the listing. New releases need the `PACKAGE_NAME` repo variable set to `com.cuebitt.vrcunitysplines` and Pages set to deploy from GitHub Actions.

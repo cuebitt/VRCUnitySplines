@@ -11,7 +11,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
     // uniform key timing gives constant speed with zero runtime Udon.
     public static class AnimateClipBaker
     {
-        public static AnimationClip BakeClip(VRCBakedSplineData data, float durationSeconds, BakedLoopMode loop)
+        public static AnimationClip BakeClip(BakedSpline data, float durationSeconds, BakedLoopMode loop)
         {
             // clip shell plus wrap mode up front
             int frames = data.positions.Length;

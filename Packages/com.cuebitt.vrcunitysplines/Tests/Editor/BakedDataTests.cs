@@ -11,10 +11,10 @@ namespace Cuebitt.VRCUnitySplines.Tests
     {
         private static EditorCurveBinding FloatBinding(string property) =>
             EditorCurveBinding.FloatCurve("", typeof(Transform), property);
-        private static VRCBakedSplineData StraightLine(int frames = 11)
+        private static BakedSpline StraightLine(int frames = 11)
         {
             // dead simple line along x, one unit per frame
-            var data = ScriptableObject.CreateInstance<VRCBakedSplineData>();
+            var data = new BakedSpline();
             data.positions = new Vector3[frames];
             data.tangents = new Vector3[frames];
             data.upVectors = new Vector3[frames];
@@ -38,7 +38,6 @@ namespace Cuebitt.VRCUnitySplines.Tests
             Assert.AreEqual(10f, data.totalLength, 1e-5f);
             for (int i = 1; i < data.cumulativeLengths.Length; i++)
                 Assert.Greater(data.cumulativeLengths[i], data.cumulativeLengths[i - 1]);
-            Object.DestroyImmediate(data);
         }
 
         [Test]
@@ -54,7 +53,6 @@ namespace Cuebitt.VRCUnitySplines.Tests
             Assert.IsNotNull(posX);
             Assert.IsNotNull(rotW);
             Assert.AreEqual(11, posX.length);
-            Object.DestroyImmediate(data);
         }
 
         [Test]
@@ -80,7 +78,6 @@ namespace Cuebitt.VRCUnitySplines.Tests
             Object.DestroyImmediate(holder);
             Object.DestroyImmediate(source);
             AssetDatabase.DeleteAsset(prefabPath);
-            Object.DestroyImmediate(data);
         }
     }
 }

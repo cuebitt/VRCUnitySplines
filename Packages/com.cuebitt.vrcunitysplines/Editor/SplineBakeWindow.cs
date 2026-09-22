@@ -9,7 +9,9 @@ namespace Cuebitt.VRCUnitySplines.Editor
         private SplineContainer _container;
         private int _splineIndex;
         private int _samplesPerCurve = 32;
-        private VRCBakedSplineData _data;
+
+        // plain in-memory bake, survives recompiles via window serialization
+        [SerializeField] private BakedSpline _data;
         private GameObject _target;
         private float _duration = 6f;
         private BakedLoopMode _loop = BakedLoopMode.Loop;
@@ -34,8 +36,12 @@ namespace Cuebitt.VRCUnitySplines.Editor
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("2. Outputs", EditorStyles.boldLabel);
-            _data = (VRCBakedSplineData)EditorGUILayout.ObjectField("Baked data", _data, typeof(VRCBakedSplineData), false);
-            if (_data == null) return;
+            if (_data == null)
+            {
+                EditorGUILayout.HelpBox("No bake yet. Press Bake Data above.", MessageType.Info);
+                return;
+            }
+            EditorGUILayout.LabelField("Baked", _data.sourceDescription + ", " + _data.positions.Length + " frames, " + _data.totalLength.ToString("F2") + " units");
 
             _target = (GameObject)EditorGUILayout.ObjectField("Animate target", _target, typeof(GameObject), true);
             _duration = EditorGUILayout.FloatField("Duration (s)", Mathf.Max(0.1f, _duration));
@@ -79,15 +85,17 @@ namespace Cuebitt.VRCUnitySplines.Editor
 
         private void BakeClip()
         {
-            // clip lives next to the baked data it came from
-            string dir = System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(_data));
-            string path = AssetDatabase.GenerateUniqueAssetPath(dir + "/" + _target.name + "_SplineAnim.anim");
+            // no data asset anymore, so the clip itself picks its save spot
+            string path = EditorUtility.SaveFilePanelInProject(
+                "Save AnimationClip", _target.name + "_SplineAnim", "anim",
+                "Where to store the baked animation clip.");
+            if (string.IsNullOrEmpty(path)) return;
 
             // bake, save, then wire an animator on the target
             var clip = AnimateClipBaker.BakeClip(_data, _duration, _loop);
             AssetDatabase.CreateAsset(clip, path);
             AssetDatabase.SaveAssets();
-            AnimateClipBaker.WireAnimator(_target, AssetDatabase.LoadAssetAtPath<AnimationClip>(path), 0f);
+            AnimateClipBaker.WireAnimator(_target, clip, 0f);
         }
 
         // Builds a small S-curve bake from scratch so new users can try the
@@ -96,7 +104,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
         {
             // fixed S-curve, 65 frames is plenty smooth for a demo
             const int frames = 65;
-            var data = ScriptableObject.CreateInstance<VRCBakedSplineData>();
+            var data = new BakedSpline();
             data.positions = new Vector3[frames];
             data.tangents = new Vector3[frames];
             data.upVectors = new Vector3[frames];
@@ -127,11 +135,9 @@ namespace Cuebitt.VRCUnitySplines.Editor
             data.closed = false;
             data.sourceDescription = "Built-in demo S-curve";
 
-            // persist the asset in a demo folder
+            // clip only, the demo data lives in memory where it was made
             if (!AssetDatabase.IsValidFolder("Assets/VRCUnitySplinesDemo"))
                 AssetDatabase.CreateFolder("Assets", "VRCUnitySplinesDemo");
-            AssetDatabase.CreateAsset(data, "Assets/VRCUnitySplinesDemo/DemoSpline.asset");
-            AssetDatabase.SaveAssets();
 
             // cube follower with a pingpong clip, select it so it is easy to find
             var demo = GameObject.CreatePrimitive(PrimitiveType.Cube);

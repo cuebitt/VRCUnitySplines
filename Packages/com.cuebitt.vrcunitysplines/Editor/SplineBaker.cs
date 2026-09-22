@@ -1,23 +1,22 @@
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Splines;
 
 namespace Cuebitt.VRCUnitySplines.Editor
 {
-    // Converts one SplineContainer spline into a VRCBakedSplineData asset.
+    // Converts one SplineContainer spline into a plain BakedSpline.
     // Only uses SplineContainer.Evaluate*, so it works across Splines 2.x.
     public static class SplineBaker
     {
-        public static VRCBakedSplineData Bake(SplineContainer container, int splineIndex, int samplesPerCurve = 32)
+        public static BakedSpline Bake(SplineContainer container, int splineIndex, int samplesPerCurve = 32)
         {
             // figure out how many frames the whole spline needs
             var spline = container.Splines[splineIndex];
             int curves = Mathf.Max(1, spline.Count - (spline.Closed ? 0 : 1));
             int frames = Mathf.Max(2, curves * samplesPerCurve + 1);
 
-            // fresh asset, filled in below
-            var data = ScriptableObject.CreateInstance<VRCBakedSplineData>();
+            // fresh data, filled in below, nothing gets saved to disk
+            var data = new BakedSpline();
             data.positions = new Vector3[frames];
             data.tangents = new Vector3[frames];
             data.upVectors = new Vector3[frames];
@@ -56,23 +55,13 @@ namespace Cuebitt.VRCUnitySplines.Editor
             data.totalLength = length;
             data.closed = spline.Closed;
             data.sourceDescription = container.name + " [" + splineIndex + "] @" + samplesPerCurve + "/curve";
-
-            // let the user pick the save spot, cancelled means no asset
-            string path = EditorUtility.SaveFilePanelInProject(
-                "Save Baked Spline", container.name + "_spline" + splineIndex, "asset",
-                "Where to store the baked spline data.");
-            if (string.IsNullOrEmpty(path))
-                return null;
-
-            AssetDatabase.CreateAsset(data, path);
-            AssetDatabase.SaveAssets();
-            return AssetDatabase.LoadAssetAtPath<VRCBakedSplineData>(path);
+            return data;
         }
 
-        public static VRCBakedSplineData[] BakeAll(SplineContainer container, int samplesPerCurve = 32)
+        public static BakedSpline[] BakeAll(SplineContainer container, int samplesPerCurve = 32)
         {
-            // one asset per spline, stop if the user cancels any of them
-            var baked = new VRCBakedSplineData[container.Splines.Count];
+            // one bake per spline, all in memory
+            var baked = new BakedSpline[container.Splines.Count];
             for (int i = 0; i < baked.Length; i++)
             {
                 baked[i] = Bake(container, i, samplesPerCurve);

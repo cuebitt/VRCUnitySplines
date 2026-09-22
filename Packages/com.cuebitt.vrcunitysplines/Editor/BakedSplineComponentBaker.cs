@@ -3,30 +3,29 @@ using UnityEngine;
 
 namespace Cuebitt.VRCUnitySplines.Editor
 {
-    // Copies baked data from the editor-only asset onto Udon behaviours as
-    // plain arrays. This is the bridge: Udon reads the component fields, the
-    // ScriptableObject never leaves the editor.
+    // Copies baked arrays from the in-memory bake onto Udon behaviours.
+    // This is the bridge: Udon reads the component fields, nothing else.
     public static class BakedSplineComponentBaker
     {
-        public static void Fill(VRCBakedSplineData data, VRCSplineTweenDriver driver)
+        public static void Fill(BakedSpline data, VRCSplineTweenDriver driver)
         {
             if (data == null || driver == null) return;
 
             // the tween driver only needs positions and the closed flag
-            driver.positions = (Vector3[])data.positions.Clone();
+            driver.positions = data.positions;
             driver.closed = data.closed;
             EditorUtility.SetDirty(driver);
         }
 
-        public static void Fill(VRCBakedSplineData data, VRCSplineEvaluator evaluator)
+        public static void Fill(BakedSpline data, VRCSplineEvaluator evaluator)
         {
             if (data == null || evaluator == null) return;
 
             // the evaluator needs every channel for distance queries
-            evaluator.positions = (Vector3[])data.positions.Clone();
-            evaluator.tangents = (Vector3[])data.tangents.Clone();
-            evaluator.upVectors = (Vector3[])data.upVectors.Clone();
-            evaluator.cumulativeLengths = (float[])data.cumulativeLengths.Clone();
+            evaluator.positions = data.positions;
+            evaluator.tangents = data.tangents;
+            evaluator.upVectors = data.upVectors;
+            evaluator.cumulativeLengths = data.cumulativeLengths;
             evaluator.totalLength = data.totalLength;
             evaluator.closed = data.closed;
             EditorUtility.SetDirty(evaluator);

@@ -7,7 +7,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
     // GameObjects, so there is no runtime cost and nothing upload-unsafe.
     public static class InstantiateBaker
     {
-        public static GameObject BakeByCount(VRCBakedSplineData data, Transform parent, GameObject prefab,
+        public static GameObject BakeByCount(BakedSpline data, Transform parent, GameObject prefab,
             int count, Vector3 minOffset, Vector3 maxOffset, Vector3 minEuler, Vector3 maxEuler,
             float minScale, float maxScale, int seed, bool alignToTangent = true)
         {
@@ -18,7 +18,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
                 minOffset, maxOffset, minEuler, maxEuler, minScale, maxScale, seed, alignToTangent);
         }
 
-        public static GameObject BakeBySpacing(VRCBakedSplineData data, Transform parent, GameObject prefab,
+        public static GameObject BakeBySpacing(BakedSpline data, Transform parent, GameObject prefab,
             float spacing, int maxCount, Vector3 minOffset, Vector3 maxOffset, Vector3 minEuler, Vector3 maxEuler,
             float minScale, float maxScale, int seed, bool alignToTangent = true)
         {
@@ -73,7 +73,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
             }
         }
 
-        private static void Sample(VRCBakedSplineData data, float distance, out Vector3 pos, out Quaternion rot)
+        private static void Sample(BakedSpline data, float distance, out Vector3 pos, out Quaternion rot)
         {
             // find the bracketing frames in the length table
             float[] lengths = data.cumulativeLengths;
