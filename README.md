@@ -4,7 +4,11 @@ Unity has a built-in [Splines](https://docs.unity3d.com/Packages/com.unity.splin
 
 ## How it works
 
-A baker reads each `SplineContainer` spline through the public Splines API and resamples it in memory: positions, tangents, up vectors, and an arc-length table, all in the container's local space. Nothing is saved to a data file. For the tween driver and evaluator the bake window copies plain arrays directly onto the components, because Udon cannot read custom types at runtime. Clips, scatter, and extruded meshes never touch Udon in the first place. When you are done baking, you delete the Splines components from the scene. A build guard stops the upload and names the leftovers if you forget.
+An editor script reads each `SplineContainer` spline through the public Splines API and resamples it in memory: positions, tangents, up vectors, and an arc-length table, all in the container's local space.
+
+For the tween driver and evaluator the bake window copies plain arrays directly onto the components so that Udon can read them at runtime. Clips, scatter, and extruded meshes are baked into their corresponding asset or configuration.
+
+The live Splines components are stripped automatically while a build or upload runs, and disabled around editor play mode, so you can keep them in the scene for further editing.
 
 ## Requirements
 
@@ -21,38 +25,31 @@ Releases publish a VPM listing from this repo, so install and updates flow throu
 3. Press Add Repository and paste the URL. Confirm and close Settings.
 4. Open your world project, press Manage Project, find VRCUnitySplines in the list, and press the plus to install.
 
-VCC resolves `com.unity.splines` on its own. If you would rather work from source, clone this repo and open the root folder as a Unity project instead.
-
-## Use it
+## Usage
 
 1. Build your path with GameObject > Spline, like you normally would.
 2. Open VRCUnitySplines > Bake Window and point it at the SplineContainer.
 3. Press Bake Data. Keep baked followers under the same transform and they track it if the parent moves.
-4. Pick an output, then delete the live Splines components before uploading.
+4. Pick an output. Leave the Splines components in place for later edits, they are stripped on build and disabled in play mode automatically.
 
-No Splines install handy? Press Create Demo in the bake window. It builds a small S-curve bake from scratch so you can try the outputs first.
+You can use the `Create Demo` button in the bake window to add a demo spline that you can use to test this package.
 
-## Outputs
+## Output
 
-Baked animation clips are the default way to move things. Frames sit evenly by arc length, so even key timing gives constant speed. Playback runs on a plain Animator with zero Udon, which is exactly what VRChat recommends over per-frame script motion.
+Baked animation clips are the default output of the spline animation baker. These run outside of Udon, so they are efficent and performant when compared to Udon-based per-frame movement.
 
-The VRCTween driver is the fallback. It feeds baked positions to `TweenLocalPath`, so timing still runs natively. Position only, so reach for it when orientation does not matter or when you want tween controls without clips.
+A VRCTween driver can alternatively be used. This also runs outside Udon, so it should come with a minimal performance cost. You can use this if you'd prefer to move a GameObject programmatically instead of using an Animator. The baked positions are fed into `TweenLocalPath`.
 
-The Udon evaluator is opt-in for runtime control like scrubbing a normalized time or querying a position at a distance. Assign it in the bake window and press Fill Evaluator to copy the baked arrays onto it; same story for the tween driver. Leave `driveEveryFrame` off unless you have a reason. Udon is hundreds of times slower than C#, so per-frame evaluation is a budget you spend on purpose.
+The Udon-based spline animation evaluator is available. You can use this when you want to scrub through the animation or query a position at a distance. This is much slower than the previous two, and is not recommended unless you specifically need it (you probably don't). Leave `driveEveryFrame` off unless you have a reason to use it.
 
-Prefab scatter bakes to plain GameObjects by count or spacing, with seeded offsets and a scale range. Extrude snapshot copies `SplineExtrude` output into a Mesh asset, turning the road or tube into a normal mesh.
+Prefab scatter bakes to plain GameObjects by count or spacing, with seeded offsets and a scale range. Extrude snapshot copies `SplineExtrude` output into a Mesh asset, turning the road or tube into a normal mesh. These are just normal GameObjects and meshes, so they shouldn't introduce any additonal performance cost.
 
-## Out of scope in v1
+## Not Included
+
+VRCUnitySplines bakes splines
 
 Anything needing live spline math at runtime stays out: `SplineData` channels, knot linking behavior, multi-container path blending, nearest-point queries, and runtime knot edits. Motion is also local-only, like all tween and animation approaches in VRChat. If you need it networked, sync the state yourself and trigger playback on every client.
 
-## Repo layout
-
-- `Packages/com.cuebitt.vrcunitysplines/`: the shippable package. `Runtime/` holds the tween driver and the opt-in evaluator, both plain-array Udon behaviours. `Editor/` holds the bakers, the in-memory bake data, the bake window, and the build guard. `Tests/Editor/` holds edit-mode tests that run with no Splines package present.
-- `Assets/Scenes/`: dev scenes for trying things out.
-- `Website/`: landing page source for the listing site.
-- `.github/workflows/`: release automation. Run the Build Release action and it zips the package from the version in `package.json`, publishes the release, and rebuilds the listing. New releases need the `PACKAGE_NAME` repo variable set to `com.cuebitt.vrcunitysplines` and Pages set to deploy from GitHub Actions.
-
 ## License
 
-MIT, Copyright (c) 2026 Cuebitt. See LICENSE at the repo root.
+MIT.

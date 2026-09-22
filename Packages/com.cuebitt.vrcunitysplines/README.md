@@ -1,6 +1,6 @@
 # VRCUnitySplines
 
-Bakes Unity Splines into upload-safe VRChat world content: animation clips, prefab scatter, and extruded meshes. You build with normal Splines tools, press bake, then delete the live Splines components before uploading. A build guard stops the upload if you forget.
+Bakes Unity Splines into upload-safe VRChat world content: animation clips, prefab scatter, and extruded meshes. You build with normal Splines tools, press bake, and keep editing the splines whenever you want. They are stripped from builds automatically and disabled in play mode, so nothing upload-unsafe remains and your scene stays intact.
 
 Needs Unity 2022.3, Worlds SDK 3.10.4 or newer, and `com.unity.splines` 2.6.1 (pulled in automatically). Install through the Creator Companion listing, or clone the repo and open it directly. Full docs live in the repo root README.
 
