@@ -1,76 +1,60 @@
-# VPM Package Template
+# VRCUnitySplines
 
-Starter for making Packages, including automation for building and publishing them.
+Unity's Splines package does not survive a VRChat upload. Its types are not whitelisted, and the Burst and Jobs math behind it cannot run in Udon. This repo ships a VPM package that works around that by baking everything in the editor. You build paths with Unity's normal Splines tools, press bake, and the world ends up with plain animation clips, meshes, and prefabs. Nothing upload-unsafe remains.
 
-Once you're all set up, you'll be able to push changes to this repository and have .zip and .unitypackage versions automatically generated, and a listing made which works in the VPM for delivering updates for this package. If you want to make a listing with a variety of packages, check out our [template-package-listing](https://github.com/vrchat-community/template-package-listing) repo.
+The package is `com.cuebitt.vrcunitysplines`, currently at 1.0.0. This repo doubles as the dev project: open it in Unity Hub and the package sits embedded under `Packages/`, ready to hack on.
 
-## ▶ Getting Started
+## How it works
 
-* Press [![Use This Template](https://user-images.githubusercontent.com/737888/185467681-e5fdb099-d99f-454b-8d9e-0760e5a6e588.png)](https://github.com/vrchat-community/template-package/generate)
-to start a new GitHub project based on this template.
-  * Choose a fitting repository name and description.
-  * Set the visibility to 'Public'. You can also choose 'Private' and change it later.
-  * You don't need to select 'Include all branches.'
-* Clone this repository locally using Git.
-  * If you're unfamiliar with Git and GitHub, [visit GitHub's documentation](https://docs.github.com/en/get-started/quickstart/git-and-github-learning-resources) to learn more.
-* Add the folder to Unity Hub and open it as a Unity Project.
-* After opening the project, wait while the VPM resolver is downloaded and added to your project.
-  * This gives you access to the VPM Package Maker and Package Resolver tools.
+A baker reads each `SplineContainer` spline through the public Splines API and resamples it into a `VRCBakedSplineData` asset: positions, tangents, up vectors, and an arc-length table, all in the container's local space. Every output below consumes that asset, never the live spline. When you are done baking, you delete the Splines components from the scene. A build guard stops the upload and names the leftovers if you forget.
 
-## 🚇 Migrating Assets Package
-Full details at [Converting Assets to a VPM Package](https://vcc.docs.vrchat.com/guides/convert-unitypackage)
+## Requirements
 
-## ✏️ Working on Your Package
+- Unity 2022.3 with the VRChat Worlds SDK, 3.10.4 or newer (the tween fallback uses VRCTween)
+- `com.unity.splines` 2.6.1, pulled in automatically as an editor-only dependency
+- UdonSharp, which ships with the Worlds SDK
 
-* Delete the "Packages/com.vrchat.demo-template" directory or reuse it for your own package.
-  * If you reuse the package, don't forget to rename it and add generated meta files to your repository!
-* Update the `.gitignore` file in the "Packages" directory to include your package.
-  * For example, change `!com.vrchat.demo-template` to `!com.username.package-name`.
-  * `.gitignore` files normally *exclude* the contents of your "Packages" directory. This `.gitignore` in this template show how to *include* the demo package. You can easily change this out for your own package name.
-* Open the Unity project and work on your package's files in your favorite code editor.
-* When you're ready, commit and push your changes.
-* Once you've set up the automation as described below, you can easily publish new versions.
+## Add the package to Creator Companion
 
-## 🤖 Setting up the Automation
+Releases publish a VPM listing from this repo, so install and updates flow through VCC:
 
-Create a repository variable with the name and value described below.
-For details on how to create repository variables, see [Creating Configuration Variables for a Repository](https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository).
-Make sure you are creating a **repository variable**, and not a **repository secret**.
+1. Copy the listing URL: `https://cuebitt.github.io/VRCUnitySplines`
+2. Open the Creator Companion, go to Settings, then the Packages tab.
+3. Press Add Repository and paste the URL. Confirm and close Settings.
+4. Open your world project, press Manage Project, find VRCUnitySplines in the list, and press the plus to install.
 
-* `PACKAGE_NAME`: the name of your package, like `com.vrchat.demo-template`.
+VCC resolves `com.unity.splines` on its own. If you would rather work from source, clone this repo and open the root folder as a Unity project instead.
 
-Finally, go to the "Settings" page for your repo, then choose "Pages", and look for the heading "Build and deployment". Change the "Source" dropdown from "Deploy from a branch" to "GitHub Actions".
+## Use it
 
-That's it!
-Some other notes:
-* We highly recommend you keep the existing folder structure of this template.
-  * The root of the project should be a Unity project.
-  * Your packages should be in the "Packages" directory.
-  * If you deviate from this folder structure, you'll need to update the paths that assume your package is in the "Packages" directory on lines 24, 38, 41 and 57.
-* If you want to store and generate your web files in a folder other than "Website" in the root, you can change the `listPublicDirectory` item [here in build-listing.yml](.github/workflows/build-listing.yml#L17).
+1. Build your path with GameObject > Spline, like you normally would.
+2. Open VRCUnitySplines > Bake Window and point it at the SplineContainer.
+3. Press Bake Data. Keep baked followers under the same transform and they track it if the parent moves.
+4. Pick an output, then delete the live Splines components before uploading.
 
-## 🎉 Publishing a Release
+No Splines install handy? Press Create Demo in the bake window. It builds a small S-curve bake from scratch so you can try the outputs first.
 
-You can make a release by running the [Build Release](.github/workflows/release.yml) action. The version specified in your `package.json` file will be used to define the version of the release.
+## Outputs
 
-## 📃 Rebuilding the Listing
+Baked animation clips are the default way to move things. Frames sit evenly by arc length, so even key timing gives constant speed. Playback runs on a plain Animator with zero Udon, which is exactly what VRChat recommends over per-frame script motion.
 
-Whenever you make a change to a release - manually publishing it, or manually creating, editing or deleting a release, the [Build Repo Listing](.github/workflows/build-listing.yml) action will make a new index of all the releases available, and publish them as a website hosted fore free on [GitHub Pages](https://pages.github.com/). This listing can be used by the VPM to keep your package up to date, and the generated index page can serve as a simple landing page with info for your package. The URL for your package will be in the format `https://username.github.io/repo-name`.
+The VRCTween driver is the fallback. It feeds baked positions to `TweenLocalPath`, so timing still runs natively. Position only, so reach for it when orientation does not matter or when you want tween controls without clips.
 
-## 🏠 Customizing the Landing Page (Optional)
+The Udon evaluator is opt-in for runtime control like scrubbing a normalized time or querying a position at a distance. Leave `driveEveryFrame` off unless you have a reason. Udon is hundreds of times slower than C#, so per-frame evaluation is a budget you spend on purpose.
 
-The action which rebuilds the listing also publishes a landing page. The source for this page is in `Website/index.html`. The automation system uses [Scriban](https://github.com/scriban/scriban) to fill in the objects like `{{ this }}` with information from the latest release's manifest, so it will stay up-to-date with the name, id and description that you provide there. You are welcome to modify this page however you want - just use the existing `{{ template.objects }}` to fill in that info wherever you like. The entire contents of your "Website" folder are published to your GitHub Page each time.
+Prefab scatter bakes to plain GameObjects by count or spacing, with seeded offsets and a scale range. Extrude snapshot copies `SplineExtrude` output into a Mesh asset, turning the road or tube into a normal mesh.
 
-## 💻 Technical Stuff
+## Out of scope in v1
 
-You are welcome to make your own changes to the automation process to make it fit your needs, and you can create Pull Requests if you have some changes you think we should adopt. Here's some more info on the included automation:
+Anything needing live spline math at runtime stays out: `SplineData` channels, knot linking behavior, multi-container path blending, nearest-point queries, and runtime knot edits. Motion is also local-only, like all tween and animation approaches in VRChat. If you need it networked, sync the state yourself and trigger playback on every client.
 
-### Build Release Action
-[release.yml](/.github/workflows/release.yml)
+## Repo layout
 
-This is a composite action combining a variety of existing GitHub Actions and some shell commands to create both a .zip of your Package and a .unitypackage. It creates a release which is named for the `version` in the `package.json` file found in your target Package, and publishes the zip, the unitypackage and the package.json file to this release.
+- `Packages/com.cuebitt.vrcunitysplines/`: the shippable package. `Runtime/` holds the baked data asset, the tween driver, and the opt-in evaluator. `Editor/` holds the bakers, the bake window, and the build guard. `Tests/Editor/` holds edit-mode tests that run with no Splines package present.
+- `Assets/Scenes/`: dev scenes for trying things out.
+- `Website/`: landing page source for the listing site.
+- `.github/workflows/`: release automation. Run the Build Release action and it zips the package from the version in `package.json`, publishes the release, and rebuilds the listing. New releases need the `PACKAGE_NAME` repo variable set to `com.cuebitt.vrcunitysplines` and Pages set to deploy from GitHub Actions.
 
-### Build Repo Listing
-[build-listing.yml](.github/workflows/build-listing.yml)
+## License
 
-This is a composite action which builds a vpm-compatible [Repo Listing](https://vcc.docs.vrchat.com/vpm/repos) based on the releases you've created. In order to find all your releases and combine them into a listing, it checks out [another repository](https://github.com/vrchat-community/package-list-action) which has a [Nuke](https://nuke.build/) project which includes the VPM core lib to have access to its types and methods. This project will be expanded to include more functionality in the future - for now, the action just calls its `BuildRepoListing` target.
+MIT, Copyright (c) 2026 Cuebitt. See LICENSE at the repo root.
