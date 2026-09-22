@@ -2,10 +2,11 @@ using UnityEngine;
 
 namespace Cuebitt.VRCUnitySplines
 {
-    // Plain data holder with no Unity Splines references, so it survives
-    // VRChat uploads. One asset per baked spline, stored in the source
-    // SplineContainer's local space. Keep baked followers under the same
-    // transform and everything lines up even if the parent moves.
+    // Editor-only intermediate: holds a baked spline so clip and scatter
+    // bakers can reuse it without re-evaluating the live spline. Udon never
+    // touches this type, Udon only sees plain arrays copied onto components
+    // by the bake window. One asset per baked spline, stored in the source
+    // SplineContainer's local space.
     [CreateAssetMenu(menuName = "VRCUnitySplines/Baked Spline", fileName = "BakedSpline")]
     public class VRCBakedSplineData : ScriptableObject
     {

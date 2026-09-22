@@ -13,6 +13,8 @@ namespace Cuebitt.VRCUnitySplines.Editor
         private GameObject _target;
         private float _duration = 6f;
         private BakedLoopMode _loop = BakedLoopMode.Loop;
+        private VRCSplineTweenDriver _tweenDriver;
+        private VRCSplineEvaluator _evaluator;
         private GameObject _prefab;
         private int _count = 20;
         private int _seed = 1234;
@@ -41,6 +43,18 @@ namespace Cuebitt.VRCUnitySplines.Editor
             if (GUILayout.Button("Bake AnimationClip (default)") && _target != null)
                 BakeClip();
 
+            // baked arrays go onto Udon components here, the asset stays editor-only
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("3. Baked components (Udon data)", EditorStyles.boldLabel);
+            _tweenDriver = (VRCSplineTweenDriver)EditorGUILayout.ObjectField("Tween driver", _tweenDriver, typeof(VRCSplineTweenDriver), true);
+            if (GUILayout.Button("Fill Tween Driver") && _tweenDriver != null)
+                BakedSplineComponentBaker.Fill(_data, _tweenDriver);
+            _evaluator = (VRCSplineEvaluator)EditorGUILayout.ObjectField("Evaluator", _evaluator, typeof(VRCSplineEvaluator), true);
+            if (GUILayout.Button("Fill Evaluator") && _evaluator != null)
+                BakedSplineComponentBaker.Fill(_data, _evaluator);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("4. Prefab scatter", EditorStyles.boldLabel);
             _prefab = (GameObject)EditorGUILayout.ObjectField("Prefab", _prefab, typeof(GameObject), false);
             _count = EditorGUILayout.IntField("Count", Mathf.Max(1, _count));
             _seed = EditorGUILayout.IntField("Seed", _seed);
@@ -52,6 +66,8 @@ namespace Cuebitt.VRCUnitySplines.Editor
                 InstantiateBaker.ClearBaked(_target != null && _target.transform.parent != null ? _target.transform.parent : null);
             EditorGUILayout.EndHorizontal();
 
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("5. Extrude", EditorStyles.boldLabel);
             _extrude = (SplineExtrude)EditorGUILayout.ObjectField("SplineExtrude", _extrude, typeof(SplineExtrude), true);
             if (GUILayout.Button("Bake Extrude Mesh") && _extrude != null)
                 ExtrudeBaker.BakeMesh(_extrude);
