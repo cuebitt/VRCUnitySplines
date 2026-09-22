@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -18,6 +19,10 @@ namespace Cuebitt.VRCUnitySplines.Editor
     {
         private const string DisabledKey = "VRCUnitySplines.DisabledBehaviours";
         private const string CleanScenesKey = "VRCUnitySplines.CleanScenes";
+
+        // no public API to clear a scene's dirty flag, the internal one is stable though
+        private static readonly MethodInfo ClearSceneDirtiness = typeof(EditorSceneManager)
+            .GetMethod("ClearSceneDirtiness", BindingFlags.Static | BindingFlags.NonPublic);
 
         static SplinePlayModeDisabler()
         {
@@ -71,7 +76,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
                 if (path.Length == 0) continue;
                 var scene = SceneManager.GetSceneByPath(path);
                 if (scene.IsValid() && scene.isLoaded)
-                    EditorSceneManager.MarkSceneClean(scene);
+                    ClearSceneDirtiness?.Invoke(null, new object[] { scene });
             }
 
             SessionState.SetString(DisabledKey, "");

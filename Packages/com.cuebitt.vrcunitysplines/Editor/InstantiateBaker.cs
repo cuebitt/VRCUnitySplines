@@ -23,7 +23,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
             float minScale, float maxScale, int seed, bool alignToTangent = true)
         {
             // everything lands in one group so it can be cleared later
-            var group = new GameObject("VRCBaked " + data.name);
+            var group = new GameObject("VRCBaked " + data.sourceDescription);
             Undo.RegisterCreatedObjectUndo(group, "Bake spline instances");
             group.transform.SetParent(parent, false);
 
