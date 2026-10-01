@@ -22,11 +22,10 @@ namespace Cuebitt.VRCUnitySplines.Editor
                 var components = root.GetComponentsInChildren<Component>(true);
                 foreach (var component in components)
                 {
-                    // null covers missing scripts, namespace matches Splines
                     if (component == null) continue;
                     if (component.GetType().Namespace != "UnityEngine.Splines") continue;
 
-                    // immediate, the scene gets serialized right after this
+                    // the scene is serialized immediately after this, so Destroy would leak
                     Object.DestroyImmediate(component);
                 }
             }

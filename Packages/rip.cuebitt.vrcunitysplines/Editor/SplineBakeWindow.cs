@@ -10,7 +10,7 @@ namespace Cuebitt.VRCUnitySplines.Editor
         private int _splineIndex;
         private int _samplesPerCurve = 32;
 
-        // plain in-memory bake, survives recompiles via window serialization
+        // serialized so the bake survives domain reloads
         [SerializeField] private BakedSpline _data;
         private GameObject _target;
         private float _duration = 6f;
@@ -45,13 +45,11 @@ namespace Cuebitt.VRCUnitySplines.Editor
             if (GUILayout.Button("Bake AnimationClip (default)") && _target != null)
                 BakeClip();
 
-            // baked arrays go onto Udon components here, the asset stays editor-only
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("3. Baked components (Udon data)", EditorStyles.boldLabel);
             _tweenDriver = (VRCSplineTweenDriver)EditorGUILayout.ObjectField("Tween driver", _tweenDriver, typeof(VRCSplineTweenDriver), true);
             if (GUILayout.Button("Fill Tween Driver") && _data != null && _tweenDriver != null)
             {
-                // the tween driver only needs positions and the closed flag
                 _tweenDriver.positions = _data.positions;
                 _tweenDriver.closed = _data.closed;
                 EditorUtility.SetDirty(_tweenDriver);
@@ -59,7 +57,6 @@ namespace Cuebitt.VRCUnitySplines.Editor
             _evaluator = (VRCSplineEvaluator)EditorGUILayout.ObjectField("Evaluator", _evaluator, typeof(VRCSplineEvaluator), true);
             if (GUILayout.Button("Fill Evaluator") && _data != null && _evaluator != null)
             {
-                // the evaluator needs every channel for distance queries
                 _evaluator.positions = _data.positions;
                 _evaluator.tangents = _data.tangents;
                 _evaluator.upVectors = _data.upVectors;
@@ -72,13 +69,11 @@ namespace Cuebitt.VRCUnitySplines.Editor
 
         private void BakeClip()
         {
-            // no data asset anymore, so the clip itself picks its save spot
             string path = EditorUtility.SaveFilePanelInProject(
                 "Save AnimationClip", _target.name + "_SplineAnim", "anim",
                 "Where to store the baked animation clip.");
             if (string.IsNullOrEmpty(path)) return;
 
-            // bake, save, then wire an animator on the target
             var clip = AnimateClipBaker.BakeClip(_data, _duration, _loop);
             AssetDatabase.CreateAsset(clip, path);
             AssetDatabase.SaveAssets();
@@ -90,7 +85,6 @@ namespace Cuebitt.VRCUnitySplines.Editor
         [MenuItem("Tools/VRCUnitySplines/Create Demo Spline")]
         public static void CreateDemo()
         {
-            // fixed S-curve, 65 frames is plenty smooth for a demo
             const int frames = 65;
             var data = new BakedSpline();
             data.positions = new Vector3[frames];
@@ -98,7 +92,6 @@ namespace Cuebitt.VRCUnitySplines.Editor
             data.upVectors = new Vector3[frames];
             data.cumulativeLengths = new float[frames];
 
-            // lay out the S shape and accumulate length as we go
             float length = 0f;
             Vector3 prev = Vector3.zero;
             for (int i = 0; i < frames; i++)
@@ -112,7 +105,6 @@ namespace Cuebitt.VRCUnitySplines.Editor
                 prev = p;
             }
 
-            // tangents from neighbors, good enough without real splines
             for (int i = 0; i < frames; i++)
             {
                 Vector3 a = data.positions[Mathf.Max(0, i - 1)];
@@ -123,11 +115,9 @@ namespace Cuebitt.VRCUnitySplines.Editor
             data.closed = false;
             data.sourceDescription = "Built-in demo S-curve";
 
-            // clip only, the demo data lives in memory where it was made
             if (!AssetDatabase.IsValidFolder("Assets/VRCUnitySplinesDemo"))
                 AssetDatabase.CreateFolder("Assets", "VRCUnitySplinesDemo");
 
-            // cube follower with a pingpong clip, select it so it is easy to find
             var demo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             demo.name = "DemoSplineFollower";
             var clip = AnimateClipBaker.BakeClip(data, 6f, BakedLoopMode.PingPong);

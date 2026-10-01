@@ -8,8 +8,6 @@ namespace Cuebitt.VRCUnitySplines
     // that need runtime control, like scrubbing or distance queries.
     // Data lives in plain arrays, filled by the bake window, because Udon
     // cannot read custom asset types at runtime.
-    // ponytail: linear scan over baked frames; fine for a few hundred frames,
-    // switch to a binary search if bake densities ever grow past that.
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class VRCSplineEvaluator : UdonSharpBehaviour
     {
@@ -38,7 +36,6 @@ namespace Cuebitt.VRCUnitySplines
 
         void Start()
         {
-            // fall back to our own transform when no target set
             if (target == null) target = transform;
             ApplyDistance(_distance);
         }
@@ -56,7 +53,6 @@ namespace Cuebitt.VRCUnitySplines
 
         public Vector3 GetPositionAt(float normalizedTime)
         {
-            // read-only query, never touches the target
             if (!HasData()) return transform.position;
             return SamplePosition(Mathf.Clamp01(normalizedTime) * totalLength);
         }
@@ -66,18 +62,16 @@ namespace Cuebitt.VRCUnitySplines
             if (!HasData() || target == null) return;
             _distance = distance;
 
-            // one frame lookup shared by all three channels
             int i = FindFrame(distance);
             float span = cumulativeLengths[i] - cumulativeLengths[i - 1];
             float f = span > 1e-9f ? (distance - cumulativeLengths[i - 1]) / span : 0f;
 
-            // pose the target from the blended channels
             target.localPosition = Vector3.Lerp(positions[i - 1], positions[i], f);
 
             Vector3 tan = Vector3.Lerp(tangents[i - 1], tangents[i], f).normalized;
             Vector3 up = Vector3.Lerp(upVectors[i - 1], upVectors[i], f).normalized;
 
-            // skip rotation when the tangent collapsed
+            // a degenerate tangent would flip the target's rotation
             if (tan.sqrMagnitude > 1e-8f)
                 target.localRotation = Quaternion.LookRotation(tan, up.sqrMagnitude > 1e-8f ? up : Vector3.up);
         }
@@ -90,7 +84,6 @@ namespace Cuebitt.VRCUnitySplines
 
         private int FindFrame(float distance)
         {
-            // first frame at or past the distance
             for (int i = 1; i < cumulativeLengths.Length; i++)
                 if (cumulativeLengths[i] >= distance) return i;
             return cumulativeLengths.Length - 1;
@@ -98,7 +91,6 @@ namespace Cuebitt.VRCUnitySplines
 
         private Vector3 SamplePosition(float distance)
         {
-            // blend between the two bracketing frames
             int i = FindFrame(distance);
             float span = cumulativeLengths[i] - cumulativeLengths[i - 1];
             float f = span > 1e-9f ? (distance - cumulativeLengths[i - 1]) / span : 0f;

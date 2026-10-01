@@ -39,18 +39,15 @@ namespace Cuebitt.VRCUnitySplines
 
         public void Play()
         {
-            // nothing to follow, bail out quietly
             if (positions == null || positions.Length < 2) return;
             Stop();
 
-            // thin the baked frames down to a waypoint list
             int frames = positions.Length;
             int count = Mathf.Max(2, Mathf.CeilToInt((float)frames / Mathf.Max(1, waypointStride)));
             var waypoints = new Vector3[count];
             for (int i = 0; i < count; i++)
                 waypoints[i] = positions[Mathf.Min(frames - 1, i * waypointStride)];
 
-            // hand it to DOTween, native side takes it from here
             _tween = gameObject.TweenLocalPath(
                 waypoints, Mathf.Max(0.01f, duration),
                 VRCTweenPathType.CatmullRom, closed, 10, VRCTweenEase.Linear);
@@ -59,13 +56,11 @@ namespace Cuebitt.VRCUnitySplines
 
         public void Stop()
         {
-            // only kill if there is something running
             if (_tween.IsValid) _tween.Kill();
         }
 
         void OnDestroy()
         {
-            // never leave a tween behind on a dead object
             gameObject.KillAllTweens();
         }
     }
