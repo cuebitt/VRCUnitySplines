@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.cuebitt.vrcunitysplines": {
-      "version": "file:com.cuebitt.vrcunitysplines",
+      "version": "file:rip.cuebitt.vrcunitysplines",
       "depth": 0,
       "source": "embedded",
       "dependencies": {
